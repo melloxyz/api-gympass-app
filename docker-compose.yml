@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: bitnami/postgresql:latest
+    container_name: api-solid-pg
+    environment:
+      - POSTGRESQL_USERNAME=docker
+      - POSTGRESQL_PASSWORD=docker
+      - POSTGRESQL_DATABASE=apisolidgym
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_api_solid_data:/bitnami/postgresql
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U docker -d apisolidgym"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pg_api_solid_data:
+    driver: local
