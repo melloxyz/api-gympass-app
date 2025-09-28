@@ -1,6 +1,7 @@
 import Fastify from 'fastify';
 import { z } from 'zod';
-import { registerUseCase, UserAlreadyExistsError } from '@/services/register.js';
+import { RegisterUseCase, UserAlreadyExistsError } from '@/services/register.js';
+import { PrismaUsersRepository } from '@/repositories/prisma-users-repository.js';
 
 export async function register(request: Fastify.FastifyRequest, reply: Fastify.FastifyReply) {
     const registerBodySchema = z.object({
@@ -12,7 +13,10 @@ export async function register(request: Fastify.FastifyRequest, reply: Fastify.F
     const { name, email, password } = registerBodySchema.parse(request.body);
 
     try {
-        await registerUseCase({ 
+        const usersRepository = new PrismaUsersRepository(); // Inversao de dependencia, apenas trocar o repositorio aqui
+        const registerUseCase = new RegisterUseCase(usersRepository);
+
+        await registerUseCase.execute({ 
             name, 
             email, 
             password 
