@@ -27,7 +27,7 @@ export async function register(request: Fastify.FastifyRequest, reply: Fastify.F
             return reply.status(409).send({ message: err.message });
         }   
 
-        return reply.status(500).send(); // MELHORE SAPORRA
+        throw err;
     }
 
     return reply.status(201).send();
