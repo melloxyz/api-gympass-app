@@ -1,7 +1,8 @@
 import Fastify from 'fastify';
 import { z } from 'zod';
-import { RegisterUseCase, UserAlreadyExistsError } from '@/services/register.js';
+import { RegisterUseCase } from '@/services/register.js';
 import { PrismaUsersRepository } from '@/repositories/prisma/prisma-users-repository.js';
+import { UserAlreadyExistError } from '@/services/errors/user-already-exists-error.js';
 
 export async function register(request: Fastify.FastifyRequest, reply: Fastify.FastifyReply) {
     const registerBodySchema = z.object({
@@ -21,16 +22,12 @@ export async function register(request: Fastify.FastifyRequest, reply: Fastify.F
             email, 
             password 
         });
-    } catch (error) {
-        if (error instanceof z.ZodError) {
-            return reply.status(400).send({ message: 'Validation error' });
-        }
+    } catch (err) { // TODO: Melhorar o tratamento de erros
+        if (err instanceof UserAlreadyExistError) {
+            return reply.status(409).send({ message: err.message });
+        }   
 
-        if (error instanceof UserAlreadyExistsError) {
-            return reply.status(409).send({ message: 'User already exists' });
-        }
-
-        return reply.status(500).send({ message: 'Internal server error' });
+        return reply.status(500).send(); // MELHORE SAPORRA
     }
 
     return reply.status(201).send();
