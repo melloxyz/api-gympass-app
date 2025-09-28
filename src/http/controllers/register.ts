@@ -1,6 +1,6 @@
 import Fastify from 'fastify';
 import { z } from 'zod';
-import { registerUseCase } from '@/services/register.js';
+import { registerUseCase, UserAlreadyExistsError } from '@/services/register.js';
 
 export async function register(request: Fastify.FastifyRequest, reply: Fastify.FastifyReply) {
     const registerBodySchema = z.object({
@@ -19,8 +19,14 @@ export async function register(request: Fastify.FastifyRequest, reply: Fastify.F
         });
     } catch (error) {
         if (error instanceof z.ZodError) {
-            return reply.status(409).send();
+            return reply.status(400).send({ message: 'Validation error' });
         }
+
+        if (error instanceof UserAlreadyExistsError) {
+            return reply.status(409).send({ message: 'User already exists' });
+        }
+
+        return reply.status(500).send({ message: 'Internal server error' });
     }
 
     return reply.status(201).send();
