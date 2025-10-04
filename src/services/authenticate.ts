@@ -1,6 +1,6 @@
 import type { UsersRepository } from "@/repositories/users-repository.js";
 import { InvalidCredentialsError } from "./errors/invalid-credentials-error.js";
-import { compare } from "node_modules/bcryptjs/umd/types.js";
+import { compare } from "bcryptjs";
 import type { User } from "@prisma/client";
 
 interface AuthenticateUseCaseRequest {
