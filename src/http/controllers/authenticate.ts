@@ -1,8 +1,7 @@
 import Fastify from 'fastify';
 import { z } from 'zod';
-import { PrismaUsersRepository } from '@/repositories/prisma/prisma-users-repository.js';
-import { AuthenticateUseCase } from '@/services/authenticate.js';
 import { InvalidCredentialsError } from '@/services/errors/invalid-credentials-error.js';
+import { makeAuthenticateUseCase } from '@/services/factories/make-authenticate-use-case.js';
 
 export async function authenticate(request: Fastify.FastifyRequest, reply: Fastify.FastifyReply) {
     const authenticateBodySchema = z.object({
@@ -13,14 +12,13 @@ export async function authenticate(request: Fastify.FastifyRequest, reply: Fasti
     const { email, password } = authenticateBodySchema.parse(request.body);
 
     try {
-        const usersRepository = new PrismaUsersRepository(); // Inversao de dependencia, apenas trocar o repositorio aqui
-        const authenticateUseCase = new AuthenticateUseCase(usersRepository);
+        const authenticateUseCase = makeAuthenticateUseCase(); // Inversao de dependencia, apenas trocar o repositorio aqui
 
         await authenticateUseCase.execute({ 
             email, 
             password 
         });
-    } catch (err) { // TODO: Melhorar o tratamento de erros
+    } catch (err) {
         if (err instanceof InvalidCredentialsError) {
             return reply.status(400).send({ message: err.message });
         }   
