@@ -1,16 +1,21 @@
-import { it, expect, describe } from 'vitest'
+import { it, expect, describe, beforeEach } from 'vitest'
 import { RegisterUseCase } from './register.js'
 import { faker } from '@faker-js/faker'
 import { compare } from 'bcryptjs'
 import { InMemoryUsersRepository } from '@/repositories/in-memory/in-memory-users-repository.js'
 import { UserAlreadyExistError } from './errors/user-already-exists-error.js'
 
-describe('Register Use Case', () => {
-    it('should be able to register', async () => {
-        const usersRepository = new InMemoryUsersRepository()
-        const registerUseCase = new RegisterUseCase(usersRepository)
+let usersRepository: InMemoryUsersRepository
+let sut: RegisterUseCase
 
-        const { user } = await registerUseCase.execute({
+describe('Register Use Case', () => {
+    beforeEach(() => {
+        usersRepository = new InMemoryUsersRepository()
+        sut = new RegisterUseCase(usersRepository)
+    })
+
+    it('should be able to register', async () => {
+        const { user } = await sut.execute({
             name: faker.person.firstName(),
             email: faker.internet.email(),
             password: faker.internet.password(),
@@ -21,12 +26,9 @@ describe('Register Use Case', () => {
     })
 
     it('should hash user password upon registration', async () => {
-        const usersRepository = new InMemoryUsersRepository()
-        const registerUseCase = new RegisterUseCase(usersRepository)
-
         const password = faker.internet.password()
 
-        const { user } = await registerUseCase.execute({
+        const { user } = await sut.execute({
             name: faker.person.firstName(),
             email: faker.internet.email(),
             password,
@@ -41,20 +43,17 @@ describe('Register Use Case', () => {
     })
 
     it('should not be able to register with an existing email', async () => {
-        const usersRepository = new InMemoryUsersRepository()
-        const registerUseCase = new RegisterUseCase(usersRepository)
-
         const password = faker.internet.password()
         const email = faker.internet.email()
 
-        await registerUseCase.execute({
+        await sut.execute({
             name: faker.person.firstName(),
             email,
             password,
         })
 
         await expect(() =>
-        registerUseCase.execute({
+        sut.execute({
         name: faker.person.firstName(),
         email,
         password,

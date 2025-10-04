@@ -1,16 +1,20 @@
-import { it, expect, describe } from 'vitest'
+import { it, expect, describe, beforeAll } from 'vitest'
 import { InMemoryUsersRepository } from '@/repositories/in-memory/in-memory-users-repository.js'
 import { AuthenticateUseCase } from './authenticate.js'
 import { faker } from '@faker-js/faker'
 import { hash } from 'bcryptjs'
 import { InvalidCredentialsError } from './errors/invalid-credentials-error.js'
 
+let usersRepository: InMemoryUsersRepository
+let sut: AuthenticateUseCase
 
 describe('Authenticate Use Case', () => {
-    it('should be able to authenticate', async () => {
-        const usersRepository = new InMemoryUsersRepository()
-        const sut = new AuthenticateUseCase(usersRepository)
+    beforeAll(() => {
+        usersRepository = new InMemoryUsersRepository()
+        sut = new AuthenticateUseCase(usersRepository)
+    })
 
+    it('should be able to authenticate', async () => {
         const fkname = faker.person.firstName()
         const fkemail = faker.internet.email()
         const fkpassword = faker.internet.password()
@@ -31,9 +35,6 @@ describe('Authenticate Use Case', () => {
     })
 
         it('should not be able to authenticate with wrong email', async () => {
-        const usersRepository = new InMemoryUsersRepository()
-        const sut = new AuthenticateUseCase(usersRepository)
-
         const fkemail = faker.internet.email()
         const fkpassword = faker.internet.password()
 
@@ -45,9 +46,6 @@ describe('Authenticate Use Case', () => {
     })
 
         it('should not be able to authenticate with wrong password', async () => {
-        const usersRepository = new InMemoryUsersRepository()
-        const sut = new AuthenticateUseCase(usersRepository)
-
         const fkname = faker.person.firstName()
         const fkemail = faker.internet.email()
         const fkpassword = faker.internet.password()
