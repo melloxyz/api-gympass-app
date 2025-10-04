@@ -14,53 +14,49 @@ describe('Authenticate Use Case', () => {
         sut = new AuthenticateUseCase(usersRepository)
     })
 
+    // Factory Functions para usuarios de teste
+    async function createTestUser(password: string) {
+        const user = {
+            name: faker.person.firstName(),
+            email: faker.internet.email(),
+            password,
+        }
+
+        await usersRepository.create({
+            name: user.name,
+            email: user.email,
+            password_hash: await hash(password, 6),
+        })
+
+        return user
+    }
+
     it('should be able to authenticate', async () => {
-        const fkname = faker.person.firstName()
-        const fkemail = faker.internet.email()
-        const fkpassword = faker.internet.password()
+        const password = faker.internet.password()
+        const user = await createTestUser(password)
 
-        await usersRepository.create({
-            name: fkname,
-            email: fkemail,
-            password_hash: await hash(fkpassword, 6),
+        const { user: authenticatedUser } = await sut.execute({
+            email: user.email,
+            password,
         })
 
-        const { user } = await sut.execute({
-            email: fkemail,
-            password: fkpassword,
-        })
-
-
-        expect(user.id).toEqual(expect.any(String))
+        expect(authenticatedUser.id).toEqual(expect.any(String))
     })
 
-        it('should not be able to authenticate with wrong email', async () => {
-        const fkemail = faker.internet.email()
-        const fkpassword = faker.internet.password()
-
-
+    it('should not be able to authenticate with wrong email', async () => {
         await expect(() => sut.execute({
-            email: fkemail,
-            password: fkpassword,
+            email: faker.internet.email(),
+            password: faker.internet.password(),
         })).rejects.toBeInstanceOf(InvalidCredentialsError)
     })
 
-        it('should not be able to authenticate with wrong password', async () => {
-        const fkname = faker.person.firstName()
-        const fkemail = faker.internet.email()
-        const fkpassword = faker.internet.password()
-
-        await usersRepository.create({
-            name: fkname,
-            email: fkemail,
-            password_hash: await hash(fkpassword, 6),
-        })
-
+    it('should not be able to authenticate with wrong password', async () => {
+        const password = faker.internet.password()
+        const user = await createTestUser(password)
 
         await expect(() => sut.execute({
-            email: fkemail,
-            password: '12345678',
+            email: user.email,
+            password: '12345678', // senha errada
         })).rejects.toBeInstanceOf(InvalidCredentialsError)
     })
-    
-}) 
+})
