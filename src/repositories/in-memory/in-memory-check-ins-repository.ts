@@ -2,13 +2,21 @@ import { Prisma } from '@prisma/client';
 import type { CheckIn } from '@prisma/client';
 import { faker } from '@faker-js/faker';
 import type { CheckInsRepository } from '../check-ins-repository.js';
+import Dayjs  from 'dayjs';
 
 export class InMemoryCheckInsRepository implements CheckInsRepository {
     public items: CheckIn[] = [];
 
     async findByUserIdAndDate(userId: string, date: Date) {
-        const checkInOnSameDate = this.items.find((checkIn) => 
-            checkIn.user_id === userId);
+        const startOfDay = Dayjs(date).startOf('day');
+        const endOfDay = Dayjs(date).endOf('day');
+
+        const checkInOnSameDate = this.items.find((checkIn) => {
+            const checkInDate = Dayjs(checkIn.createdAt);
+            const isOnSameDate = checkInDate.isAfter(startOfDay) && checkInDate.isBefore(endOfDay);
+
+            return checkIn.user_id === userId && isOnSameDate; // 4:20 - continua daqui mello do futuro
+        })
 
 
         if (!checkInOnSameDate) {
