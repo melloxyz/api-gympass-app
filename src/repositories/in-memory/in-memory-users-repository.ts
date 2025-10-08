@@ -1,7 +1,7 @@
 import { Prisma } from '@prisma/client';
 import type { User } from '@prisma/client';
-import { faker } from '@faker-js/faker';
 import type { UsersRepository } from '../users-repository.js';
+import { randomUUID } from 'crypto';
 
 export class InMemoryUsersRepository implements UsersRepository {
     public items: User[] = [];
@@ -29,10 +29,10 @@ export class InMemoryUsersRepository implements UsersRepository {
 
     async create(data: Prisma.UserCreateInput) {
         const user = {
-            id: faker.string.uuid(), 
-            name: data.name || faker.person.firstName(),
-            email: data.email || faker.internet.email(),
-            password_hash: data.password_hash || faker.internet.password(),
+            id: randomUUID(),
+            name: data.name as string,
+            email: data.email as string,
+            password_hash: data.password_hash as string,
             createdAt: new Date(),
         }
 
