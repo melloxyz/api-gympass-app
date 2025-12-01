@@ -3,7 +3,7 @@ import { AuthenticateUseCase } from "../authenticate.js";
 
 
 export function makeAuthenticateUseCase() {
-        const usersRepository = new PrismaUsersRepository(); // Inversao de dependencia, apenas trocar o repositorio aqui
+        const usersRepository = new PrismaUsersRepository(); 
         const authenticateUseCase = new AuthenticateUseCase(usersRepository);
 
         return authenticateUseCase;
