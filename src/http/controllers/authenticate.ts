@@ -12,12 +12,19 @@ export async function authenticate(request: Fastify.FastifyRequest, reply: Fasti
     const { email, password } = authenticateBodySchema.parse(request.body);
 
     try {
-        const authenticateUseCase = makeAuthenticateUseCase(); // Inversao de dependencia, apenas trocar o repositorio aqui
-
-        await authenticateUseCase.execute({ 
+        const authenticateUseCase = makeAuthenticateUseCase();
+        const { user } = await authenticateUseCase.execute({ 
             email, 
             password 
         });
+        const token = await reply.jwtSign({}, {
+            sign: {
+                sub: user.id,
+            },
+        });
+
+        return reply.status(200).send({ token });
+
     } catch (err) {
         if (err instanceof InvalidCredentialsError) {
             return reply.status(400).send({ message: err.message });
@@ -25,6 +32,4 @@ export async function authenticate(request: Fastify.FastifyRequest, reply: Fasti
 
         throw err;
     }
-
-    return reply.status(200).send();
 }
