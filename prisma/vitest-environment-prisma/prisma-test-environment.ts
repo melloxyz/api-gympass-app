@@ -1,4 +1,3 @@
-import { prisma } from '@/lib/prisma.js';
 import 'dotenv/config';
 import { execSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
@@ -16,20 +15,29 @@ function generateDatabaseUrl(schema: string) {
 
 export default <Environment> {
     name: 'prisma-test',
-    transformMode: 'ssr',
+    viteEnvironment: 'ssr',
 
     async setup() {
         const schema  = randomUUID()
         const databaseUrl = generateDatabaseUrl(schema)
 
+        const env = {
+            ...process.env,
+            DATABASE_URL: databaseUrl,
+            PRISMA_CLIENT_ENGINE_TYPE: 'library',
+            PRISMA_CLI_QUERY_ENGINE_TYPE: 'library',
+        }
+
         process.env.DATABASE_URL = databaseUrl
 
-        execSync('npx prisma db push')
+        execSync('npx prisma generate', { stdio: 'inherit', env })
+        execSync(`npx prisma db push --force-reset --url="${databaseUrl}"`, { stdio: 'inherit', env })
+
+        const { prisma } = await import('../../src/lib/prisma.js');
 
         return {
             async teardown() {
                 await prisma.$executeRawUnsafe(`DROP SCHEMA IF EXISTS "${schema}" CASCADE`);
-
                 await prisma.$disconnect();
             }
         }
